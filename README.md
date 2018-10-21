@@ -1,2 +1,40 @@
 # Gluon
-Proof of concept of the Gluon relay protocol
+The Gluon Relay Protocol is an extension to [Graphene Relay Protocol](https://people.cs.umass.edu/~gbiss/graphene.pdf). Graphene allows the transactions within a block to be reconciled between two peers using Invertible Bloom Lookup Tables (IBLT). In addition to this, Gluon allows transaction order to be reconciled. Under typical conditions, this has the effect of dramatically reducing the amount of data required to transmit a block when compared to transmitting the order information in full. 
+
+## Graphene Algorithm
+### Network Phase
+1. Sender:    Sends inv for a block.
+2. Receiver:  Requests unknown block; includes count of txns in her IDpool, m.
+3. Sender:    Creates a Bloom filter S from the set of n txn in the block and IBLT I (both created from the set of n txn ID in the block) and essential Bitcin header fields. Both, along with the essential header fields are sent.
+4. Receiver:  Creates IBLT I' from the txn IDs that pass through S. Calculates the set difference, as described [here](https://dl.acm.org/citation.cfm?id=2018462), of the two sets. Sends a request for the missing txns.
+5. Sender:    Sends the requested txns and the entire order information of the block.
+
+### Block Reconciliation Phase
+1. Uses the order information to sort the txns into a block. 
+
+## Gluon Algorithm
+### Network Phase
+1. Sender:    Sends inv for a block.
+2. Receiver:  Requests unknown block; includes count of txns in her IDpool, m.
+3. Sender:    Creates a Bloom filter S from the set of n txn in the block and IBLT I (both created from the set of n txn ID in the block) and essential Bitcoin header fields. At each height k > 0 (above the leafs) of the Merkle tree the Sender creates an IBLT Ik from the set of "node_i short ID || node_(i+1) short ID". Everything, along with the essential header fields are sent.
+4. Receiver:  Creates IBLT I' from the txn IDs that pass through S. Calculates the set difference using I and I', as described [here](https://dl.acm.org/citation.cfm?id=2018462), of the two sets. Sends a request for the missing txns.
+5. Sender:    Sends the requested txns.
+
+### Block Reconciliation Phase
+1. Construct leafs of the Merkle Tree. Create IBLT I'1 from the set of all "txn_i short ID || txn_(i+1) short ID".
+2. Calculate the set difference using I1 and I'1. Permute the transactions in the block to reconcile ordered pairs.
+3. Construct the level one of the Merkle Tree. Create IBLT'2 from the set of all "node_i short ID || node_(i+1) short ID".
+4. Calculate the set difference using I1 and I'1. Permute the transactions in the block to reconcile ordered quadruples.
+...
+2 log(n). The block is reconciled. 
+
+### Notes
++ After reconciliation at the kth height of the Merkle Tree we have prior knowledge at the (k+1)th height. Meaning that we can make our short IDs very short and shorter as height increases.
++ Although we are transfering log(n) IBLT's, the size of the set seeding Ik falls off as 1/2^k as height k increases.
+
+### Advantages
++ Greatly decrease the amount of order information propagated.
++ The IBLTs I and Ik can be relayed immediately.
++ Order reconciliation and Merkle root validation are done simultaneously.
++ Transaction validation can begin before all order information arrives. 
++ No additional round trips.
