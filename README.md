@@ -31,7 +31,7 @@ The Gluon Relay Protocol is an extension to [Graphene Relay Protocol](https://pe
 ### Notes
 + After reconciliation at the kth height of the Merkle Tree we have prior knowledge at the (k+1)th height. Meaning that we can make our short IDs very short and shorter as height increases.
 + Although we are transfering lg(n) IBLT's, the size of the set seeding I<sub>k</sub> falls off as 1/2<sup>k</sup> as height k increases.
-+ Typically, at each height there will be few O(1) operations and the reconciliation will suceed before height lg(n). 
++ Typically, at each height there will be few O(1) operations and the reconciliation will succeed before height lg(n). 
 
 ### Advantages
 + Greatly decrease the amount of order information propagated.
