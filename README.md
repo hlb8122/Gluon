@@ -10,7 +10,7 @@ The Gluon Relay Protocol is an extension to [Graphene Relay Protocol](https://pe
 5. Sender:    Sends the requested txns and the entire order information of the block.
 
 ### Block Reconciliation Phase
-1. Uses the order information to sort the txns into a block. 
+1. Add the missing txns to the block and impose the order. 
 
 ## Gluon Algorithm
 ### Network Phase
@@ -21,16 +21,17 @@ The Gluon Relay Protocol is an extension to [Graphene Relay Protocol](https://pe
 5. Sender:    Sends the requested txns.
 
 ### Block Reconciliation Phase
-1. Construct leafs of the Merkle Tree. Create IBLT I'1 from the set of all "txn_i short ID || txn_(i+1) short ID".
-2. Calculate the set difference using I1 and I'1. Permute the transactions in the block to reconcile ordered pairs.
-3. Construct the level one of the Merkle Tree. Create IBLT'2 from the set of all "node_i short ID || node_(i+1) short ID".
-4. Calculate the set difference using I1 and I'1. Permute the transactions in the block to reconcile ordered quadruples.
-...
-2 log(n). The block is reconciled. 
+1. Add the txns to the block.
+2. Construct leafs of the Merkle Tree. Create IBLT I'1 from the set of all "txn_i short ID || txn_(i+1) short ID".
+3. Calculate the set difference using I1 and I'1. Permute the transactions in the block to reconcile ordered pairs.
+4. Construct the level one of the Merkle Tree. Create IBLT'2 from the set of all "node_i short ID || node_(i+1) short ID".
+5. Calculate the set difference using I1 and I'1. Permute the transactions in the block to reconcile ordered quadruples.
+6. Repeat until the block is order reconciled.
 
 ### Notes
 + After reconciliation at the kth height of the Merkle Tree we have prior knowledge at the (k+1)th height. Meaning that we can make our short IDs very short and shorter as height increases.
-+ Although we are transfering log(n) IBLT's, the size of the set seeding Ik falls off as 1/2^k as height k increases.
++ Although we are transfering lg(n) IBLT's, the size of the set seeding Ik falls off as 1/2^k as height k increases.
++ Typically, at each height there will be few O(1) operations and the reconciliation will suceed before height lg(n). 
 
 ### Advantages
 + Greatly decrease the amount of order information propagated.
