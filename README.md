@@ -1,5 +1,5 @@
 # Gluon
-The Gluon Relay Protocol is an extension to [Graphene Relay Protocol](https://people.cs.umass.edu/~gbiss/graphene.pdf). Graphene allows the transactions within a block to be reconciled between two peers using Invertible Bloom Lookup Tables (IBLT). In addition to this, Gluon allows transaction order to be reconciled. Under typical conditions, this has the effect of dramatically reducing the amount of data required to transmit a block when compared to transmitting the order information in full. 
+The Gluon Relay Protocol is an extension to [Graphene Relay Protocol](https://people.cs.umass.edu/~gbiss/graphene.pdf). Graphene allows the transactions within a block to be reconciled between two peers using [Invertible Bloom Lookup Tables](https://arxiv.org/pdf/1101.2245.pdf) (IBLT). In addition to this, Gluon allows transaction order to be reconciled. Under typical conditions, this has the effect of dramatically reducing the amount of data required to transmit a block when compared to transmitting the order information in full. 
 
 ## Graphene Algorithm
 ### Network Phase
@@ -24,7 +24,7 @@ The Gluon Relay Protocol is an extension to [Graphene Relay Protocol](https://pe
 1. Add the txns to the block.
 2. Construct leafs of the Merkle Tree. Create IBLT I'<sub>1</sub> from the set of all "txn<sub>i</sub> short ID || txn<sub>(i+1)</sub> short ID".
 3. Calculate the set difference using I<sub>1</sub> and I'<sub>1</sub>. Permute the transactions in the block to reconcile ordered pairs.
-4. Construct the level one of the Merkle Tree. Create IBLT'<sub>2</sub> from the set of all "node<sub>i</sub> short ID || node<sub>i+1</sub> short ID".
+4. Construct the level one of the Merkle Tree. Create IBLT I'<sub>2</sub> from the set of all "node<sub>i</sub> short ID || node<sub>i+1</sub> short ID".
 5. Calculate the set difference using I<sub>1</sub> and I'<sub>1</sub>. Permute the transactions in the block to reconcile ordered quadruples.
 6. Repeat until the block is order reconciled.
 
