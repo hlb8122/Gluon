@@ -24,12 +24,12 @@ The Gluon Relay Protocol is an extension to [Graphene Relay Protocol](https://pe
 1. Add the txns to the block.
 2. Construct leafs of the Merkle Tree. Create IBLT I'<sub>1</sub> from the set of all "txn<sub>i</sub> short ID || txn<sub>(i+1)</sub> short ID".
 3. Calculate the set difference using I<sub>1</sub> and I'<sub>1</sub>. Permute the transactions in the block to reconcile ordered pairs.
-4. Construct the level one of the Merkle Tree. Create IBLT I'<sub>2</sub> from the set of all "node<sub>i</sub> short ID || node<sub>i+1</sub> short ID".
+4. Construct the height one nodes of the Merkle Tree (above the leafs). Create IBLT I'<sub>2</sub> from the set of all "node<sub>i</sub> short ID || node<sub>i+1</sub> short ID".
 5. Calculate the set difference using I<sub>1</sub> and I'<sub>1</sub>. Permute the transactions in the block to reconcile ordered quadruples.
 6. Repeat until the block is order reconciled.
 
 ### Notes
-+ After reconciliation at the kth height of the Merkle Tree we have prior knowledge at the (k+1)th height. Meaning that we can make our short IDs very short and shorter as height increases.
++The entropy of the the pair (node<sub>i</sub>, node<sub>i+1</sub>) is therefore going to scale as O(lg(n) - lg(k)) as the height k increases. Meaning that we can replace "node<sub>i</sub> short ID || node<sub>i+1</sub> short ID" with a very small encoding.
 + Although we are transfering lg(n) IBLT's, the size of the set seeding I<sub>k</sub> falls off as 1/2<sup>k</sup> as height k increases.
 + Typically, at each height there will be few O(1) operations and the reconciliation will succeed before height lg(n). 
 
@@ -38,4 +38,4 @@ The Gluon Relay Protocol is an extension to [Graphene Relay Protocol](https://pe
 + The IBLTs I and I<sub>k</sub> can be relayed immediately.
 + Order reconciliation and Merkle root validation are done simultaneously.
 + Transaction validation can begin before all order information arrives. 
-+ No additional round trips.
++ No additional round trips over Graphene.
