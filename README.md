@@ -1,5 +1,5 @@
 # Gluon
-The Gluon Relay Protocol is an extension to [Graphene Relay Protocol](https://people.cs.umass.edu/~gbiss/graphene.pdf). Graphene allows the transactions within a block to be reconciled between two peers using [Invertible Bloom Lookup Tables](https://arxiv.org/pdf/1101.2245.pdf) (IBLT). In addition to this, Gluon allows transaction order to be reconciled. Under typical conditions, this has the effect of dramatically reducing the amount of data required to transmit a block when compared to transmitting the order information in full. 
+The Gluon Relay Protocol is an extension to the [Graphene Relay Protocol](https://people.cs.umass.edu/~gbiss/graphene.pdf). Graphene allows the transactions within a block to be reconciled between two peers using [Invertible Bloom Lookup Tables](https://arxiv.org/pdf/1101.2245.pdf) (IBLT). In addition to this, Gluon allows transaction order to be reconciled. Under typical conditions, this has the effect of dramatically reducing the amount of data required to transmit a block when compared to transmitting the order information in full. 
 
 ## Graphene Algorithm
 ### Network Phase
@@ -29,7 +29,7 @@ The Gluon Relay Protocol is an extension to [Graphene Relay Protocol](https://pe
 6. Repeat until the block is order reconciled.
 
 ### Notes
-+ The entropy of the the pair (node<sub>i</sub>, node<sub>i+1</sub>) is scales as O(lg(n) - lg(k)) as the height k increases. Meaning that we can replace "node<sub>i</sub> short ID || node<sub>i+1</sub> short ID" with a very small encoding.
++ The entropy of the the pair (node<sub>i</sub>, node<sub>i+1</sub>) scales as O(lg(n) - lg(k)) as the height k increases. Meaning that we can replace "node<sub>i</sub> short ID || node<sub>i+1</sub> short ID" with a very small encoding.
 + Although we are transfering lg(n) IBLT's, the size of the set seeding I<sub>k</sub> falls off as 1/2<sup>k</sup> as height k increases.
 + Typically, at each height there will be few O(1) operations and the reconciliation will succeed before height lg(n). 
 
