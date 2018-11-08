@@ -42,7 +42,9 @@ The Gluon Block Propagation Protocol is an extension to the [Graphene Block Prop
 + No additional round trips over Graphene.
 
 ## Implementation
-### Required Libraries
+### Requirements
+Python 3.5+ (Python < 3.5 doesn't preserve order of keys in dictionaries which we leverage)
+#### Libraries
 + bitarray
 + mmh3
 + msgpack
