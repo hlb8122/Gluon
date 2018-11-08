@@ -40,3 +40,14 @@ The Gluon Block Propagation Protocol is an extension to the [Graphene Block Prop
 + Order reconciliation and Merkle root validation are done simultaneously.
 + Transaction validation can begin before all order information arrives. 
 + No additional round trips over Graphene.
+
+## Implementation
+### Required Libraries
++ bitarray
++ mmh3
++ msgpack
++ numpy
++ requests
+
+### Testing
+Run test_receive.py and test_send.py on your local machine.
