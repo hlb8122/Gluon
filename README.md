@@ -43,7 +43,6 @@ The Gluon Block Propagation Protocol is an extension to the [Graphene Block Prop
 
 ### Disadvantages
 + Parameters need to be tuned as in Graphene.
-+ 
 
 ## Proof of Concept Implementation
 ### Requirements
