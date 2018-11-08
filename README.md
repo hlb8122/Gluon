@@ -41,7 +41,10 @@ The Gluon Block Propagation Protocol is an extension to the [Graphene Block Prop
 + Transaction validation can begin before all order information arrives. 
 + No additional round trips over Graphene.
 
-## Implementation
+### Disadvantages
++ Parameters need to be tuned as in Graphene.
+
+## Proof of Concept Implementation
 ### Requirements
 Python 3.5+ (Python < 3.5 doesn't preserve order of keys in dictionaries which we leverage)
 #### Libraries
@@ -53,3 +56,21 @@ Python 3.5+ (Python < 3.5 doesn't preserve order of keys in dictionaries which w
 
 ### Testing
 Run test_receive.py and test_send.py on your local machine.
+
+### Parameter Tweaking
+Parameter selection is not fully autonomous at the moment, after encountering a decoding error in the transaction reconcilliation phase one should increase the est_missing_tx_perc value in test_send.py. Similarly, in the order reconcilliation phase one should increase the est_missing_pair_perc value. 
+
+Work needs to be done on selection of parameters.
+
+### Architecture
+#### Data Structures
+The main constituent data structures of the protocol mirror that of Graphene:
++ INV - A message, sent by the sender, initiating the Gluon protocol.
++ GET_GLBLK - A request, from the receiver, indicating that the receiver wants to receive the block.
++ GLBLK(ORD) - A message, sent by the sender, containing Bloom filters and IBLTs for transactions and pairs.
++ GET_GLBLKTX - A request, from the receiver, for transactions missing from the receivers transaction pool.
++ GLBLKTX - A message, sent by the sender, containing missing transactions.
+
+#### Procedures
++ The send and receive protocol main protocol can be seen in node.py under send_block and listen_for_block procedures.
++ Order reconciliation can be seen in node.py under reconcile_pairs and merkle_tree.py in the reconcile_order procedures.
