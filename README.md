@@ -58,6 +58,11 @@ Python 3.5+ (Python < 3.5 doesn't preserve order of keys in dictionaries which w
 ### Testing
 Run test_receive.py and test_send.py on your local machine.
 
+### Parameter Tweaking
+Parameter selection is not fully autonomous at the moment, after encountering a decoding error in the transaction reconcilliation phase one should increase the est_missing_tx_perc value in test_send.py. Similarly, in the order reconcilliation phase one should increase the est_missing_pair_perc value. 
+
+Work needs to be done on selection of parameters.
+
 ### Architecture
 #### Data Structures
 The main constituent data structures of the protocol mirror that of Graphene:
