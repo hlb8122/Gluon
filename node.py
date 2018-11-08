@@ -2,15 +2,17 @@ from merkle_tree import PartialMerkleTree
 from networking import NodeServer
 import byte_tools as bt
 import filter_ops as fo
+import threading
 
 class Node():
     def __init__(self, mempool, block_tx_ids, ip, port):
         # Initialise network parameters
         self.ip = ip
         self.port = port
-        self.server = None # TODO: Support multiple connections
+        self.server = None
 
         # Initialise encoding parameters
+        # TODO: Implement better encodings see self.setup_id_encoding, self.setup_pair_encoding and byte_tools.py
         self.id_encoding_size = 8
         self.pair_encoding_size = 3 # TODO: This should dynamically change as we progress in height
 
@@ -255,12 +257,56 @@ class Node():
         multiplier = 1
 
         fpr, n_cells = fo.optimum_params(n, m, est_missing_tx_perc, est_excess_tx_perc, cell_size)
+        n_cells = max([n_cells, 5])  # TODO: Bound n_cell fall off in a less hacky way
 
         block_bloom = self.create_block_bloom(error_rate=fpr)
         block_iblt = self.create_block_iblt(int(multiplier*n_cells))
 
         # Send Gluon block
         self.server.send(NetworkMsg.GLBLK, [block_bloom, block_iblt])
+
+        def send_order():
+            # Send order information
+            while len(self.partial_tree.top_nodes) > 1:
+                # Python is the bottleneck here, slowing down transfer speed makes it more realistic
+                # Also makes it easy on the network threading
+                import time
+                time.sleep(2)
+
+                # Check whether reconciliation is complete
+                if self.server.complete is not None:
+                    self.close_connection()
+                    print('Transfer complete')
+                    print('Analytics:')
+                    print('Total of %d bytes received' % self.server.total_received)
+                    print('Total of %d bytes sent' % self.server.total_sent)
+                    print('Total of %d order bytes sent' % self.server.total_ord_sent)
+                    # TODO: Nodes communicate analytics for future parameter improvements
+                    break
+
+                # Setup pair encoding
+                self.setup_pair_encoding()
+
+                # Calculate Gluon block order data
+                n = len(self.partial_tree.top_nodes)  # Not quite 2
+                cell_size = 8 * (3 + self.pair_encoding_scheme.length + 4) * cell_overhead
+
+                multiplier = 1
+
+                fpr, n_cells = fo.optimum_params(n, m, est_missing_pair_perc, est_missing_pair_perc, cell_size)
+                n_cells = max([n_cells, 5]) # TODO: Bound n_cell fall off in a less hacky way
+                # n_cells = max(18, n_cells)
+                pair_bloom = self.create_pairs_bloom(fpr)
+                pair_iblt = self.create_pairs_iblt(int(multiplier * n_cells))
+
+                # Send Gluon block order data
+                self.server.send(NetworkMsg.GLBLKORD, [pair_bloom, pair_iblt])
+
+                # Increment Merkle tree height
+                self.partial_tree.add_merkle_level()
+
+        # Send Gluon block order data
+        threading.Thread(target=send_order).start()
 
         # Wait for Get Gluon block data message
         self.server.waitOn(NetworkMsg.GET_GLBLKDAT)
@@ -270,44 +316,6 @@ class Node():
 
         # Send Gluon block tx data
         self.server.send(NetworkMsg.GLBLKTX, missing_tx_response)
-
-        while len(self.partial_tree.top_nodes) > 1:
-            # Python is the bottleneck here, slowing down transfer speed makes it more realistic
-            # Also makes it easy on the network threading
-            import time
-            time.sleep(2)
-
-            # Check whether reconciliation is complete
-            if self.server.complete is not None:
-                self.close_connection()
-                print('Transfer complete')
-                print('Analytics:')
-                print('Total of %d bytes received' % self.server.total_received)
-                print('Total of %d bytes sent' % self.server.total_sent)
-                print('Total of %d order bytes sent' % self.server.total_ord_sent)
-                # TODO: Nodes communicate analytics for future parameter improvements
-                break
-
-            # Setup pair encoding
-            self.setup_pair_encoding()
-
-            # Calculate Gluon block order data
-            n = len(self.partial_tree.top_nodes) # Not quite 2
-            cell_size = 8*(3 + self.pair_encoding_scheme.length + 4) * cell_overhead
-
-            multiplier = 1
-
-            fpr, n_cells = fo.optimum_params(n, m, est_missing_pair_perc, est_missing_pair_perc, cell_size)
-
-            # n_cells = max(18, n_cells)
-            pair_bloom = self.create_pairs_bloom(fpr)
-            pair_iblt = self.create_pairs_iblt(int(multiplier*n_cells))
-
-            # Send Gluon block order data
-            self.server.send(NetworkMsg.GLBLKORD, [pair_bloom, pair_iblt])
-
-            # Increment Merkle tree height
-            self.partial_tree.add_merkle_level()
 
     def listen_for_blocks(self):
         from networking import NetworkMsg

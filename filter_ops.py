@@ -2,7 +2,6 @@ from bloom import BloomFilter
 from iblt_slim import SIBLT
 import numpy as np
 
-
 def get_iblt_missing_excess(iblt1, iblt2):
     # Calculate subtraction of iblt2 from iblt1 then decode
     print('Calculating IBLT Subtraction...')
@@ -24,12 +23,11 @@ def create_iblt(set, n_cells = 800, n_hashes=4, key_size=32, hash_key_sum_size=4
     # Create IBLT
     iblt = SIBLT(n_cells, key_size, hash_key_sum_size, n_hashes)
     iblt.encode(set)
-
     return iblt
 
 def optimum_params_bf(n_block_tx, n_receiver_pool_tx, cell_size):
-    # Calculate optimum n_cells (copied from BU graphene)
-    # TODO: Didn't have much luck with this producing optimal code
+    # Calculate optimum n_cells (copied from BU Graphene)
+    # TODO: Didn't have much luck with this producing optimal params
     # TODO: Perhaps it's the fact that we're assuming that Bob's mempool is missing only one TX?
     # TODO: Need to talk to someone about this...
     assert(n_receiver_pool_tx >= n_block_tx - 1)
@@ -48,8 +46,8 @@ def optimum_params_bf(n_block_tx, n_receiver_pool_tx, cell_size):
 
     def L(a):
         # Size of IBLT
-        n_iblt_hash = 4 # TODO: Lookup from table
-        iblt_overhead = 1.5 # TODO: Lookup from table
+        n_iblt_hash = 4 # TODO: Lookup from table?
+        iblt_overhead = 1.5 # TODO: Lookup from table?
         padded_cells = a * iblt_overhead
         cells = n_iblt_hash * np.ceil(padded_cells / n_iblt_hash)
         return cell_size * cells

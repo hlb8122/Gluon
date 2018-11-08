@@ -47,6 +47,8 @@ class PartialMerkleTree:
 
     def reconcile_order(self, missing_pairs):
         # Reconcile order given missing pairs
+        # TODO: Make faster and more succinct
+        # TODO: Analysis using involutions/cycles in group theory might help here
 
         top_pairs = self.get_top_value_pairs()
         top_values = self.get_top_values()

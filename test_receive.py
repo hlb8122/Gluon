@@ -2,7 +2,7 @@ import blocks_util
 import byte_tools as bt
 from node import Node
 
-# Initialise Bobs mempool, currently modeled by a block
+# Initialise Bobs txpool, currently modeled by a block
 # Ordered by arrival at node
 bob_mempool = blocks_util.getTxsFromBlock(blocks_util.actual)
 

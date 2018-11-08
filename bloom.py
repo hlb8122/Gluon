@@ -1,4 +1,4 @@
-import math
+import numpy as np
 import mmh3
 from bitarray import bitarray
 
@@ -90,7 +90,7 @@ class BloomFilter(object):
         p : float
             False Positive probability in decimal
         '''
-        m = -(n * math.log(p)) / (math.log(2) ** 2)
+        m = -(n * np.log(p)) / (np.log(2) ** 2)
         return int(m)
 
     @classmethod
@@ -105,5 +105,5 @@ class BloomFilter(object):
         n : int
             number of items expected to be stored in filter
         '''
-        k = (m / n) * math.log(2)
+        k = (m / n) * np.log(2)
         return int(k)
