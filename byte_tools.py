@@ -66,6 +66,26 @@ class PairEncodingScheme:
 
         return cls(encode, decode, length)
 
+    @classmethod
+    def IntSortEncoding(cls, top_values, int_len=2):
+        # This is too computationally expensive but works as a proxy for now
+        top_values.sort()
+
+        def encode(x, y):
+            i_x = top_values.index(x)
+            i_y = top_values.index(y)
+            s = int(i_x).to_bytes(int_len, 'big') + int(i_y).to_bytes(int_len, 'big')
+            return s
+
+        def decode(b):
+            b1, b2 = b[:2], b[2:]
+            val1, val2 = top_values[int.from_bytes(b1, 'big')], top_values[int.from_bytes(b2, 'big')]
+            return (val1, val2)
+
+        return cls(encode, decode, 2*int_len)
+
+
+
 class IdEncodingScheme:
     def __init__(self, encode, decode, length):
         self.encode = encode

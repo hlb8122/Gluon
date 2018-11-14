@@ -11,11 +11,6 @@ class Node():
         self.port = port
         self.server = None
 
-        # Initialise encoding parameters
-        # TODO: Implement better encodings see self.setup_id_encoding, self.setup_pair_encoding and byte_tools.py
-        self.id_encoding_size = 8
-        self.pair_encoding_size = 3 # TODO: This should dynamically change as we progress in height
-
         #Initialise transaction pool
         self.txpool = dict(zip([bt.sha256(tx.encode()) for tx in mempool], mempool))
         self.txpool[bt.empty_hash] = ""
@@ -24,9 +19,13 @@ class Node():
         #Initialise leafs
         self.partial_tree = PartialMerkleTree.from_leaf_values(block_tx_ids)
 
-        # Initialise encoding scheme for pairs
+        # Initialise encoding parameters
+        # TODO: Implement better encodings see self.setup_id_encoding, self.setup_pair_encoding and byte_tools.py
         self.id_encoding_scheme = None
         self.pair_encoding_scheme = None
+        self.id_encoding_size = 8
+        self.pair_encoding_size = 3 # TODO: This should dynamically change as we progress in height
+
 
     def init_server(self):
         self.server = NodeServer(self.ip, self.port)
@@ -81,13 +80,18 @@ class Node():
     def setup_id_encoding(self, priors):
         self.id_encoding_scheme = bt.IdEncodingScheme.BasicTruncatedEncoding(priors, n_bytes=self.id_encoding_size)
 
-    def setup_pair_encoding(self):
+    def setup_pair_encoding(self, priors, basic=True):
         # Set up pair encoding
-        # At 3 bytes and 2000 tx's this collides ~12% of the time
-        # At 4 bytes and 2000 tx's this collides ~0.04% of the time
-        top_values = self.partial_tree.get_top_values()
-        node_id_enc = bt.IdEncodingScheme.BasicTruncatedEncoding(top_values, n_bytes=self.pair_encoding_size)
-        self.pair_encoding_scheme = bt.PairEncodingScheme.DoubleIdEncoding(node_id_enc)
+        if basic:
+            # At 2 bytes and 2000 tx's this collides 99.99...% of the time
+            # At 3 bytes and 2000 tx's this collides ~12% of the time
+            # At 4 bytes and 2000 tx's this collides ~0.04% of the time
+            node_id_enc = bt.IdEncodingScheme.BasicTruncatedEncoding(priors, n_bytes=self.pair_encoding_size)
+            self.pair_encoding_scheme = bt.PairEncodingScheme.DoubleIdEncoding(node_id_enc)
+        else:
+            top_values = self.partial_tree.get_top_values()
+            self.pair_encoding_scheme = bt.PairEncodingScheme.IntSortEncoding(top_values)
+
 
     def create_pairs_iblt(self, n_cells=300):
         # Create IBLT from pairs at top on partial tree
@@ -107,6 +111,8 @@ class Node():
 
     def prereconcile(self, bloom, iblt_other):
         # Begin to reconcile block by creating a protoblock
+
+        # Filter protoblock using bloom
         self.proto_block = [tx_id for tx_id in self.txpool.keys() if tx_id in bloom]
         self.setup_id_encoding(self.proto_block)
         encoded_proto_block = [self.id_encoding_scheme.encode(tx_id) for tx_id in self.proto_block]
@@ -161,6 +167,8 @@ class Node():
         # Calculate response to missing tx request
         # TODO: Catch no responses
         missing_tx_ids = [self.id_encoding_scheme.decode(tx_id) for tx_id in enc_missing_tx_ids]
+        if missing_tx_ids == []:
+            return []
         block_tx_ids = self.get_block_tx_ids()
 
         # Sort missing tx IDs by the order in which they appear in own block
@@ -230,8 +238,6 @@ class Node():
             # If no missing pairs return True
             return True
 
-
-
     def send_block(self, est_missing_tx_perc, est_missing_pair_perc):
         from networking import NetworkMsg
         block = self.get_block()
@@ -285,7 +291,7 @@ class Node():
                     break
 
                 # Setup pair encoding
-                self.setup_pair_encoding()
+                self.setup_pair_encoding(self.partial_tree.get_top_values())
 
                 # Calculate Gluon block order data
                 n = len(self.partial_tree.top_nodes)  # Not quite 2
@@ -353,7 +359,7 @@ class Node():
         # Reconcile order
         while len(self.partial_tree.top_nodes) > 1:
             # Setup pair encoding
-            self.setup_pair_encoding()
+            self.setup_pair_encoding(self.partial_tree.get_top_values())
 
             # Wait for GLBLKORD
             self.server.waitOn(NetworkMsg.GLBLKORD)
